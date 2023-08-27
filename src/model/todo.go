@@ -56,7 +56,7 @@ func getList() []todo {
 	file, err := os.ReadFile(Filename)
 
 	if err != nil {
-		os.WriteFile(Filename, []byte(FileHeader), 0666)
+		createBlankfile()
 
 		return []todo{}
 	}
@@ -65,6 +65,10 @@ func getList() []todo {
 	todos := []todo{}
 	for i, line := range content {
 		if i == 0 {
+			continue
+		}
+
+		if line == "" {
 			continue
 		}
 
@@ -81,6 +85,16 @@ func getList() []todo {
 	}
 
 	return todos
+}
+
+func createBlankfile() os.File {
+	os.Remove(Filename)
+
+	os.WriteFile(Filename, []byte(FileHeader), 0666)
+
+	f, _ := os.OpenFile(Filename, os.O_WRONLY, 0666)
+
+	return *f
 }
 
 func PrepareAddTodo() {
@@ -113,6 +127,59 @@ func appendTodo(title string) error {
 	defer f.Close()
 	f.WriteString("\n")
 	_, err := f.WriteString(t.toString())
+
+	return err
+}
+
+func PrepareEditTodo() {
+	fmt.Println("What is the todo number you want to edit?")
+
+	var todoCode int
+	fmt.Scanln(&todoCode)
+
+	todoList := getList()
+	if todoCode > len(todoList) {
+		fmt.Println("Todo doesn't exist")
+
+		return
+	}
+
+	fmt.Println("What should be the new name of the Todo '", todoList[todoCode-1].title, "'")
+
+	var title string
+	fmt.Scanln(&title)
+
+	err := edit(title, todoCode-1)
+
+	if err != nil {
+		fmt.Println("It presented an error", err)
+
+		return
+	}
+
+	fmt.Println("Done!")
+}
+
+func edit(title string, index int) error {
+	todoList := getList()
+	for i, _ := range todoList {
+		if i == index {
+			todoList[i].title = title
+		}
+	}
+
+	return saveCompleteList(todoList)
+}
+
+func saveCompleteList(todoList []todo) error {
+	f := createBlankfile()
+
+	strList := FileHeader + "\n"
+	for _, todo := range todoList {
+		strList = strList + todo.toString() + "\n"
+	}
+
+	_, err := f.WriteString(strList)
 
 	return err
 }

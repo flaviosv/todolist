@@ -12,6 +12,7 @@ func Menu() int {
 	fmt.Println("2 - Edit (Todo)?")
 	fmt.Println("3 - Mark as done/undone (Todo)?")
 	fmt.Println("4 - Delete (Todo)?")
+	fmt.Println("5 - Show list (Todo)?")
 	fmt.Println("99 - Exit program?")
 
 	var option int
