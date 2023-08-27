@@ -156,7 +156,7 @@ func PrepareEditTodo() {
 }
 
 func scanTodoCode() int {
-	fmt.Println("What is the todo number you want to edit?")
+	fmt.Println("What is the todo number you want to work with?")
 
 	var todoCode int
 	fmt.Scanln(&todoCode)
@@ -211,22 +211,8 @@ func PrepareMarkDoneUndone() {
 	}
 	fmt.Println("Do you want to mark '", todo.title, "' as", action, "? (y/n)")
 
-	var conf string
-	fmt.Scanln(&conf)
-
-	options := map[string]int{
-		"y": 0,
-		"n": 0,
-	}
-	if _, ok := options[conf]; !ok {
-		fmt.Println("Options invalid!")
-
-		return
-	}
-
-	if conf == "n" {
-		fmt.Println("Ok, getting back to the menu!")
-
+	conf := getConfirmationInput()
+	if !conf {
 		return
 	}
 
@@ -239,10 +225,62 @@ func PrepareMarkDoneUndone() {
 	evaluateOperationResult(err)
 }
 
+func getConfirmationInput() bool {
+	var conf string
+	fmt.Scanln(&conf)
+
+	options := map[string]int{
+		"y": 0,
+		"n": 0,
+	}
+	if _, ok := options[conf]; !ok {
+		fmt.Println("Options invalid!")
+
+		return false
+	}
+
+	if conf == "n" {
+		fmt.Println("Ok, getting back to the menu!")
+
+		return false
+	}
+
+	return true
+}
+
 func changeStatus(index int, newStatus int) error {
 	todoList := getList()
 	todoList[index].status = newStatus
 	todoList[index].doneAt = time.Now()
 
 	return saveCompleteList(todoList)
+}
+
+func PrepareDelete() {
+	todoCode := scanTodoCode()
+
+	todoExist := isTodoCodeExist(todoCode)
+	if !todoExist {
+		return
+	}
+
+	todoList := getList()
+	todo := todoList[todoCode-1]
+	fmt.Println("Do you really want to remove the item '", todo.title, "'? (y/n)")
+
+	conf := getConfirmationInput()
+	if !conf {
+		return
+	}
+
+	err := deleteTodo(todoCode - 1)
+
+	evaluateOperationResult(err)
+}
+
+func deleteTodo(index int) error {
+	todoList := getList()
+	newTodoList := append(todoList[:index], todoList[index+1:]...)
+
+	return saveCompleteList(newTodoList)
 }
