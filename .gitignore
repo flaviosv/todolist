@@ -3,4 +3,6 @@
 !src/go.mod
 !main.go
 !src
-!src/*
+!src/*/
+!src/model/**
+!src/view/**

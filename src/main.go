@@ -1,5 +1,10 @@
 package main
 
+import "todolist/view"
+import "todolist/model"
+
 func main() {
-	printGreeting()
+	view.PrintGreeting()
+
+	model.List()
 }
