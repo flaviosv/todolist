@@ -24,6 +24,11 @@ type todo struct {
 	doneAt    time.Time
 }
 
+func (t todo) toString() string {
+
+	return fmt.Sprintf("%s,%s,%s,%s", t.title, strconv.Itoa(t.status), t.createdAt.Format(time.RFC3339), t.doneAt.Format(time.RFC3339))
+}
+
 func List() {
 	list := getList()
 
@@ -31,14 +36,19 @@ func List() {
 		fmt.Println("There isn't any todos in our list")
 	}
 
-	fmt.Println("Your todolist")
+	fmt.Println("\nYour todolist")
 	for i, t := range list {
-		var status = "Done"
+		status := "Done"
 		if t.status == 0 {
 			status = "Not done"
 		}
 
-		fmt.Println(i+1, "-", t.title, "-", status, "-", t.doneAt.Format("2006-01-02 15:04"))
+		doneAt := ""
+		if t.status == 1 {
+			doneAt = t.doneAt.Format("2006-01-02 15:04")
+		}
+
+		fmt.Println(i+1, "-", t.title, "-", status, "-", doneAt)
 	}
 }
 
@@ -71,4 +81,38 @@ func getList() []todo {
 	}
 
 	return todos
+}
+
+func PrepareAddTodo() {
+	fmt.Println("What is it?")
+
+	var title string
+	fmt.Scanln(&title)
+
+	err := appendTodo(title)
+
+	if err != nil {
+		fmt.Println("It presented an error", err)
+
+		return
+	}
+
+	fmt.Println("Done!")
+}
+
+func appendTodo(title string) error {
+	f, _ := os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, 0666)
+
+	t := todo{
+		title:     title,
+		status:    0,
+		createdAt: time.Now(),
+		doneAt:    time.Now(),
+	}
+
+	defer f.Close()
+	f.WriteString("\n")
+	_, err := f.WriteString(t.toString())
+
+	return err
 }
