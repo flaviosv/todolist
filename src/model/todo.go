@@ -105,6 +105,10 @@ func PrepareAddTodo() {
 
 	err := appendTodo(title)
 
+	evaluateOperationResult(err)
+}
+
+func evaluateOperationResult(err error) {
 	if err != nil {
 		fmt.Println("It presented an error", err)
 
@@ -132,41 +136,48 @@ func appendTodo(title string) error {
 }
 
 func PrepareEditTodo() {
-	fmt.Println("What is the todo number you want to edit?")
+	todoCode := scanTodoCode()
 
-	var todoCode int
-	fmt.Scanln(&todoCode)
-
-	todoList := getList()
-	if todoCode > len(todoList) {
-		fmt.Println("Todo doesn't exist")
-
+	todoExist := isTodoCodeExist(todoCode)
+	if !todoExist {
 		return
 	}
 
-	fmt.Println("What should be the new name of the Todo '", todoList[todoCode-1].title, "'")
+	todoList := getList()
+	todo := todoList[todoCode-1]
+	fmt.Println("What should be the new name of the Todo '", todo.title, "'")
 
 	var title string
 	fmt.Scanln(&title)
 
 	err := edit(title, todoCode-1)
 
-	if err != nil {
-		fmt.Println("It presented an error", err)
+	evaluateOperationResult(err)
+}
 
-		return
+func scanTodoCode() int {
+	fmt.Println("What is the todo number you want to edit?")
+
+	var todoCode int
+	fmt.Scanln(&todoCode)
+
+	return todoCode
+}
+
+func isTodoCodeExist(todoCode int) bool {
+	todoList := getList()
+	if todoCode > len(todoList) {
+		fmt.Println("Todo doesn't exist")
+
+		return false
 	}
 
-	fmt.Println("Done!")
+	return true
 }
 
 func edit(title string, index int) error {
 	todoList := getList()
-	for i, _ := range todoList {
-		if i == index {
-			todoList[i].title = title
-		}
-	}
+	todoList[index].title = title
 
 	return saveCompleteList(todoList)
 }
@@ -182,4 +193,56 @@ func saveCompleteList(todoList []todo) error {
 	_, err := f.WriteString(strList)
 
 	return err
+}
+
+func PrepareMarkDoneUndone() {
+	todoCode := scanTodoCode()
+
+	todoExist := isTodoCodeExist(todoCode)
+	if !todoExist {
+		return
+	}
+
+	todoList := getList()
+	todo := todoList[todoCode-1]
+	action := "Done"
+	if todo.status == 1 {
+		action = "Not done"
+	}
+	fmt.Println("Do you want to mark '", todo.title, "' as", action, "? (y/n)")
+
+	var conf string
+	fmt.Scanln(&conf)
+
+	options := map[string]int{
+		"y": 0,
+		"n": 0,
+	}
+	if _, ok := options[conf]; !ok {
+		fmt.Println("Options invalid!")
+
+		return
+	}
+
+	if conf == "n" {
+		fmt.Println("Ok, getting back to the menu!")
+
+		return
+	}
+
+	newStatus := 0
+	if todo.status == 0 {
+		newStatus = 1
+	}
+	err := changeStatus(todoCode-1, newStatus)
+
+	evaluateOperationResult(err)
+}
+
+func changeStatus(index int, newStatus int) error {
+	todoList := getList()
+	todoList[index].status = newStatus
+	todoList[index].doneAt = time.Now()
+
+	return saveCompleteList(todoList)
 }

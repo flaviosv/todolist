@@ -20,6 +20,8 @@ func main() {
 			model.PrepareAddTodo()
 		case 2:
 			model.PrepareEditTodo()
+		case 3:
+			model.PrepareMarkDoneUndone()
 		case 5:
 			model.List()
 		case 99:
