@@ -1,0 +1,6 @@
+*
+!.gitignore
+!src/go.mod
+!main.go
+!src
+!src/*
